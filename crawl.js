@@ -32,35 +32,54 @@ function getURLsFromHTML(htmlBody,baseURL){
 }
 
 async function crawlPage(baseURL, currentURL, pages){
-    //check if we are already crawling this page
-    if (!currentURL.includes(baseURL)){
+    //check is domain correct
+    currentURL = new URL(currentURL);
+    baseURL = new URL(baseURL);
+    if ( currentURL.hostname !== baseURL.hostname){
         return pages;
     }
-    currentURL = normalizeURL(currentURL);
+
+    const normalizedURL = normalizeURL(currentURL);
+
+    //check if already crawled
+    if (pages[normalizedURL] > 0){
+        pages[normalizedURL] += 1;
+        return pages;
+    }
+
+    //check is URL already in pages
+    if (normalizedURL.hostname === baseURL.hostname){
+        pages[normalizedURL] = 0;
+    }else{
+        pages[normalizedURL] = 1;
+    }
 
     //crawl the page
     console.log(`crawling ${currentURL}...`)
+    let htmlBody = '';
     try{
         const response = await fetch(currentURL);
         if(response.status > 399){
             console.log(`HTTP error: ${response.status}`);
-            return;
+            return pages;
         }
         const contentType = response.headers.get('content-type');
         if (!contentType.includes('text/html')){
             console.log(`Got non-html response: ${contentType}`);
-            return;
+            return pages;
         }
-        const htmlBody = await response.text();
-        console.log(htmlBody)
-        pages = pages.concat(getURLsFromHTML(htmlBody, baseURL));
+        htmlBody = await response.text();
+        //console.log(htmlBody)
     }catch(err){
         console.log(`Error: ${err.message}`);
     }
-    if(pages.length !== 0){
-        const queueURL = pages.pop();
-        crawlPage(baseURL, queueURL, pages);
+    
+    const nextURLs = getURLsFromHTML(htmlBody, baseURL);
+    for(const nextURL of nextURLs){
+        pages = await crawlPage(baseURL, nextURL, pages);
     }
+
+    return pages;
 }
 
 module.exports = {
