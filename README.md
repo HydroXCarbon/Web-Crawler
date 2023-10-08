@@ -30,6 +30,6 @@ Follow these steps to get started with Web Crawler:
 
 If you have any questions, feedback, or suggestions, please feel free to reach out to us:
 
-- Email: [Purin.pongpanich@gmail.com
+- Email: Purin.pongpanich@gmail.com
 
 Thank you for exploring Web Crawler! We hope you find it valuable for your web exploration and data gathering needs.
